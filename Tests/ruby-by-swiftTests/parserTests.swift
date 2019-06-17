@@ -16,8 +16,8 @@ class parserTests: XCTestCase {
     override func tearDown() {
         // Put teardown code here. This method is called after the invocation of each test method in the class.
     }
-
-    func testAnyChar() {
+    
+    func testAnyCharSuccess() {
         // This is an example of a functional test case.
         // Use XCTAssert and related functions to verify your tests produce the correct results.
         let parser = AnyChar();
@@ -29,7 +29,16 @@ class parserTests: XCTestCase {
 
         XCTAssertEqual(s.value, "a");
         XCTAssertEqual(s.next, "bc");
-
+    }
+    
+    func testAnyCharFailure() {
+        let parser = AnyChar();
+        let result = parser.parse("");
+        
+        guard case let .failure(f) = result else {
+            fatalError();
+        }
+        XCTAssertEqual(f.next, nil)
     }
 
     func testPerformanceExample() {

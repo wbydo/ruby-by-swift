@@ -16,13 +16,17 @@ struct Failure<N> {
     let next: N;
 }
 
-enum Result<V, N> {
-    case success(Success<V, N>);
-    case failure(Failure<N>);
+enum Result<V, SN, FN> {
+    case success(Success<V, SN>);
+    case failure(Failure<FN>);
 }
 
 struct AnyChar {
-    func parse(_ target: String) -> Result<Character, String> {
+    func parse(_ target: String) -> Result<Character, String, String?> {
+        guard !target.isEmpty else {
+            return Result.failure(Failure(next: nil))
+        }
+        
         let startIndex = target.startIndex;
         
         let value = target[startIndex];
