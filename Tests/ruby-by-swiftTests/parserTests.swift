@@ -2,7 +2,7 @@
 //  parserTests.swift
 //  ruby-by-swiftTests
 //
-//  Created by hbk on 2019/06/17.
+//  Created by wbydo on 2019/06/17.
 //
 
 import XCTest

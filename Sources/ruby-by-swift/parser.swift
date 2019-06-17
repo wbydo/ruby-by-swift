@@ -2,7 +2,7 @@
 //  parser.swift
 //  ruby-by-swift
 //
-//  Created by hbk on 2019/06/17.
+//  Created by wbydo on 2019/06/17.
 //
 
 import Foundation
