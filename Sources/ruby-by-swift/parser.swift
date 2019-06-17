@@ -21,7 +21,16 @@ enum Result<V, SN, FN> {
     case failure(Failure<FN>);
 }
 
-struct AnyChar {
+protocol Parser {
+    associatedtype Target
+    associatedtype Value
+    associatedtype SuccessNext
+    associatedtype FailureNext
+    
+    func parse(_ target: Target) -> Result<Value, SuccessNext, FailureNext>
+}
+
+struct AnyChar: Parser {
     func parse(_ target: String) -> Result<Character, String, String?> {
         guard !target.isEmpty else {
             return Result.failure(Failure(next: nil))
@@ -36,7 +45,7 @@ struct AnyChar {
     }
 }
 
-struct SpecificChar {
+struct SpecificChar: Parser {
     let value: Character
 
     func parse(_ target: String) -> Result<Character, String, String?> {
