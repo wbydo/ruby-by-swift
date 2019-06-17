@@ -40,6 +40,42 @@ class parserTests: XCTestCase {
         }
         XCTAssertEqual(f.next, nil)
     }
+    
+    func testSpecificCharSuccess() {
+        let parser = SpecificChar(value: "a");
+        let result = parser.parse("abc");
+        
+        guard case let .success(s) = result else {
+            fatalError();
+        }
+        XCTAssertEqual(s.value, "a")
+        XCTAssertEqual(s.next, "bc")
+    }
+    
+    func testSpecificCharFailure() {
+        let parser = SpecificChar(value: "b");
+        let result = parser.parse("abc");
+        
+        guard case let .failure(s) = result else {
+            fatalError();
+        }
+        
+        guard let next = s.next else {
+            fatalError();
+        }
+
+        XCTAssertEqual(next, "abc")
+    }
+    
+    func testSpecificCharFailureByBlank() {
+        let parser = SpecificChar(value: "a");
+        let result = parser.parse("");
+        
+        guard case let .failure(f) = result else {
+            fatalError();
+        }
+        XCTAssertEqual(f.next, nil)
+    }
 
     func testPerformanceExample() {
         // This is an example of a performance test case.

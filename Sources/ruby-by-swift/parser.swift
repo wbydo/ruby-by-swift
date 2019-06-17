@@ -35,3 +35,22 @@ struct AnyChar {
         return Result.success(Success(value: value, next: String(next)));
     }
 }
+
+struct SpecificChar {
+    let value: Character
+
+    func parse(_ target: String) -> Result<Character, String, String?> {
+        let anyChar = AnyChar();
+        let result = anyChar.parse(target);
+        
+        guard case let .success(s) = result else {
+            return result;
+        }
+        
+        if s.value == self.value {
+            return result
+        } else {
+            return Result.failure(Failure(next: target))
+        }
+    }
+}
