@@ -7,9 +7,18 @@
 
 import Foundation
 
-struct Result<V, N> {
-    let value: V
-    let next: N
+struct Success<V, N> {
+    let value: V;
+    let next: N;
+}
+
+struct Failure<N> {
+    let next: N;
+}
+
+enum Result<V, N> {
+    case success(Success<V, N>);
+    case failure(Failure<N>);
 }
 
 struct AnyChar {
@@ -19,6 +28,6 @@ struct AnyChar {
         let value = target[startIndex];
         let next = target[target.index(startIndex, offsetBy: 1)..<target.endIndex]
         
-        return Result(value: value, next: String(next));
+        return Result.success(Success(value: value, next: String(next)));
     }
 }

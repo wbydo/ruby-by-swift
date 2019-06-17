@@ -22,8 +22,14 @@ class parserTests: XCTestCase {
         // Use XCTAssert and related functions to verify your tests produce the correct results.
         let parser = AnyChar();
         let result: Result = parser.parse("abc");
-        XCTAssertEqual(result.value, "a");
-        XCTAssertEqual(result.next, "bc");
+        
+        guard case let .success(s) = result else {
+            fatalError();
+        }
+
+        XCTAssertEqual(s.value, "a");
+        XCTAssertEqual(s.next, "bc");
+
     }
 
     func testPerformanceExample() {
