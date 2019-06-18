@@ -7,18 +7,26 @@
 
 import Foundation
 
-struct Success<V, N> {
-    let value: V;
-    let next: N;
-}
-
-struct Failure<N> {
-    let next: N;
-}
-
 enum Result<V, SN, FN> {
     case success(Success<V, SN>);
     case failure(Failure<FN>);
+    
+    struct Success<V, N> {
+        let value: V;
+        let next: N;
+    }
+    
+    struct Failure<N> {
+        let next: N;
+    }
+    
+    static func success(value: V, next: SN) -> Result {
+        return .success(Success(value: value, next: next));
+    }
+    
+    static func failure(next: FN) -> Result {
+        return .failure(Failure(next: next))
+    }
 }
 
 protocol Parser {
@@ -58,7 +66,7 @@ extension Parser {
 struct AnyChar: Parser {
     func parse(_ target: String) -> Result<Character, String, String?> {
         guard !target.isEmpty else {
-            return Result.failure(Failure(next: nil))
+            return Result.failure(next: nil)
         }
         
         let startIndex = target.startIndex;
@@ -66,7 +74,7 @@ struct AnyChar: Parser {
         let value = target[startIndex];
         let next = target[target.index(startIndex, offsetBy: 1)..<target.endIndex]
         
-        return Result.success(Success(value: value, next: String(next)));
+        return Result.success(value: value, next: String(next));
     }
 }
 
@@ -84,7 +92,7 @@ struct SpecificChar: Parser {
         if s.value == self.value {
             return result
         } else {
-            return Result.failure(Failure(next: target))
+            return Result.failure(next: target);
         }
     }
 }
