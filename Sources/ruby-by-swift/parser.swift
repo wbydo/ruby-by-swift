@@ -73,6 +73,27 @@ extension Parser {
     }
 }
 
+struct ZeroOrMore<P: Parser>: Parser
+        where P.SuccessNext == P.FailureNext {
+    
+    typealias Target = P.Target
+    typealias Value = P.Value?
+    typealias SuccessNext = P.SuccessNext
+    typealias FailureNext = P.FailureNext
+    
+    let parser: P
+    
+    func parse(_ target: P.Target) -> Result<P.Value?, P.SuccessNext, P.FailureNext> {
+        switch parser.parse(target) {
+            case let .failure(f):
+                return Result.success(value: nil, next: f.next)
+
+            case let .success(s):
+                let values: [Value] = [s.value];
+        }
+    }
+}
+
 struct AnyChar: Parser {
     func parse(_ target: String) -> Result<Character, String?, String?> {
         guard !target.isEmpty else {
