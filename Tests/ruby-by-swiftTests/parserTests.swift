@@ -17,28 +17,59 @@ class parserTests: XCTestCase {
         // Put teardown code here. This method is called after the invocation of each test method in the class.
     }
     
-    func testAnyCharSuccess() {
-        // This is an example of a functional test case.
-        // Use XCTAssert and related functions to verify your tests produce the correct results.
-        let parser = AnyChar();
-        let result: Result = parser.parse("abc");
-        
-        guard case let .success(s) = result else {
-            fatalError();
+    class resultTests: XCTestCase {
+        func testCreateSuccessType() {
+            guard let success = Result<String, String, Any>.Success<String, String>(value: "a", next: "b") else {
+                fatalError()
+            }
+            XCTAssertEqual(success.value, "a")
+            XCTAssertEqual(success.next, "b")
         }
-
-        XCTAssertEqual(s.value, "a");
-        XCTAssertEqual(s.next, "bc");
+        
+        func testSuccessTypeOfStringDontHaveEmpty() {
+            let success = Result<String, String, Any>.Success<String, String>(value: "a", next: "")
+            XCTAssertNil(success);
+        }
     }
     
-    func testAnyCharFailure() {
-        let parser = AnyChar();
-        let result = parser.parse("");
-        
-        guard case let .failure(f) = result else {
-            fatalError();
+    class anyCharTests: XCTestCase {
+        func testSuccessNormal() {
+            // This is an example of a functional test case.
+            // Use XCTAssert and related functions to verify your tests produce the correct results.
+            let parser = AnyChar();
+            let result: Result = parser.parse("abc");
+            
+            guard case let .success(s) = result else {
+                fatalError();
+            }
+            
+            XCTAssertEqual(s.value, "a");
+            XCTAssertEqual(s.next, "bc");
         }
-        XCTAssertEqual(f.next, nil)
+
+        func testSuccessSingleChar() {
+            // This is an example of a functional test case.
+            // Use XCTAssert and related functions to verify your tests produce the correct results.
+            let parser = AnyChar();
+            let result: Result = parser.parse("q");
+            
+            guard case let .success(s) = result else {
+                fatalError();
+            }
+            
+            XCTAssertEqual(s.value, "q");
+            XCTAssertEqual(s.next, nil);
+        }
+        
+        func testFailure() {
+            let parser = AnyChar();
+            let result = parser.parse("");
+            
+            guard case let .failure(f) = result else {
+                fatalError();
+            }
+            XCTAssertEqual(f.next, nil)
+        }
     }
     
     func testSpecificCharSuccess() {
