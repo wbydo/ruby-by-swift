@@ -64,7 +64,7 @@ extension Parser {
 }
 
 struct AnyChar: Parser {
-    func parse(_ target: String) -> Result<Character, String, String?> {
+    func parse(_ target: String) -> Result<Character, String?, String?> {
         guard !target.isEmpty else {
             return Result.failure(next: nil)
         }
@@ -74,14 +74,18 @@ struct AnyChar: Parser {
         let value = target[startIndex];
         let next = target[target.index(startIndex, offsetBy: 1)..<target.endIndex]
         
-        return Result.success(value: value, next: String(next));
+        if next.isEmpty {
+            return Result.success(value: value, next: nil);
+        } else {
+            return Result.success(value: value, next: String(next));
+        }
     }
 }
 
 struct SpecificChar: Parser {
     let value: Character
 
-    func parse(_ target: String) -> Result<Character, String, String?> {
+    func parse(_ target: String) -> Result<Character, String?, String?> {
         let anyChar = AnyChar();
         let result = anyChar.parse(target);
         
