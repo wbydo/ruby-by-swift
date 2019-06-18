@@ -30,6 +30,31 @@ protocol Parser {
     func parse(_ target: Target) -> Result<Value, SuccessNext, FailureNext>
 }
 
+struct OrParser<LP: Parser, RP: Parser>: Parser
+        where LP.Target == RP.Target, LP.Value == RP.Value,
+            LP.SuccessNext == RP.SuccessNext, LP.FailureNext == RP.FailureNext {
+
+    let lhs: LP
+    let rhs: RP
+    
+    func parse(_ target: LP.Target) -> Result<LP.Value, LP.SuccessNext, LP.FailureNext> {
+        let lresult = lhs.parse(target)
+        guard case .failure = lresult else {
+            return lresult;
+        }
+        
+        let rresult = rhs.parse(target)
+        return rresult;
+        
+    }
+}
+
+extension Parser {
+    func or<P: Parser>(_ other: P) -> OrParser<Self, P> {
+        return OrParser(lhs: self, rhs: other);
+    }
+}
+
 struct AnyChar: Parser {
     func parse(_ target: String) -> Result<Character, String, String?> {
         guard !target.isEmpty else {
