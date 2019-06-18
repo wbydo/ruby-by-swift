@@ -19,7 +19,7 @@ class parserTests: XCTestCase {
     
     class resultTests: XCTestCase {
         func testCreateSuccessType() {
-            guard let success = Result<String, String, Any>.Success<String, String>(value: "a", next: "b") else {
+            guard let success = Result<String, String>.Success(value: "a", next: "b") else {
                 fatalError()
             }
             XCTAssertEqual(success.value, "a")
@@ -27,7 +27,7 @@ class parserTests: XCTestCase {
         }
         
         func testSuccessTypeOfStringDontHaveEmpty() {
-            let success = Result<String, String, Any>.Success<String, String>(value: "a", next: "")
+            let success = Result<String, String>.Success(value: "a", next: "")
             XCTAssertNil(success);
         }
     }

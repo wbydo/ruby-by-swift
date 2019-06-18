@@ -7,24 +7,24 @@
 
 import Foundation
 
-enum Result<V, SN, FN> {
-    case success(Success<V, SN>);
-    case failure(Failure<FN>);
+enum Result<V, N> {
+    case success(Success);
+    case failure(Failure);
     
-    struct Success<V, N> {
+    struct Success {
         let value: V;
         let next: N;
     }
     
-    struct Failure<N> {
+    struct Failure {
         let next: N;
     }
     
-    static func success(value: V, next: SN) -> Result {
+    static func success(value: V, next: N) -> Result {
         return .success(Success(value: value, next: next));
     }
     
-    static func failure(next: FN) -> Result {
+    static func failure(next: N) -> Result {
         return .failure(Failure(next: next))
     }
 }
@@ -42,20 +42,18 @@ extension Result.Success where N == String {
 protocol Parser {
     associatedtype Target
     associatedtype Value
-    associatedtype SuccessNext
-    associatedtype FailureNext
+    associatedtype Next
     
-    func parse(_ target: Target) -> Result<Value, SuccessNext, FailureNext>
+    func parse(_ target: Target) -> Result<Value, Next>
 }
 
 struct OrParser<LP: Parser, RP: Parser>: Parser
-        where LP.Target == RP.Target, LP.Value == RP.Value,
-            LP.SuccessNext == RP.SuccessNext, LP.FailureNext == RP.FailureNext {
+        where LP.Target == RP.Target, LP.Value == RP.Value, LP.Next == RP.Next {
 
     let lhs: LP
     let rhs: RP
     
-    func parse(_ target: LP.Target) -> Result<LP.Value, LP.SuccessNext, LP.FailureNext> {
+    func parse(_ target: LP.Target) -> Result<LP.Value, LP.Next> {
         let lresult = lhs.parse(target)
         guard case .failure = lresult else {
             return lresult;
@@ -74,7 +72,7 @@ extension Parser {
 }
 
 struct AnyChar: Parser {
-    func parse(_ target: String) -> Result<Character, String?, String?> {
+    func parse(_ target: String) -> Result<Character, String?> {
         guard !target.isEmpty else {
             return Result.failure(next: nil)
         }
@@ -95,7 +93,7 @@ struct AnyChar: Parser {
 struct SpecificChar: Parser {
     let value: Character
 
-    func parse(_ target: String) -> Result<Character, String?, String?> {
+    func parse(_ target: String) -> Result<Character, String?> {
         let anyChar = AnyChar();
         let result = anyChar.parse(target);
         
