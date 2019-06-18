@@ -29,6 +29,16 @@ enum Result<V, SN, FN> {
     }
 }
 
+extension Result.Success where N == String {
+    init?(value: V, next: N) {
+        guard !next.isEmpty else {
+            return nil
+        }
+        self.value = value
+        self.next = next
+    }
+}
+
 protocol Parser {
     associatedtype Target
     associatedtype Value

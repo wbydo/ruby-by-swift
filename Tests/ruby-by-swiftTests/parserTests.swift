@@ -17,6 +17,21 @@ class parserTests: XCTestCase {
         // Put teardown code here. This method is called after the invocation of each test method in the class.
     }
     
+    class resultTests: XCTestCase {
+        func testCreateSuccessType() {
+            guard let success = Result<String, String, Any>.Success<String, String>(value: "a", next: "b") else {
+                fatalError()
+            }
+            XCTAssertEqual(success.value, "a")
+            XCTAssertEqual(success.next, "b")
+        }
+        
+        func testSuccessTypeOfStringDontHaveEmpty() {
+            let success = Result<String, String, Any>.Success<String, String>(value: "a", next: "")
+            XCTAssertNil(success);
+        }
+    }
+    
     class anyCharTests: XCTestCase {
         func testSuccessNormal() {
             // This is an example of a functional test case.
