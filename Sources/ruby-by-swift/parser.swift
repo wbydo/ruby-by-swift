@@ -27,6 +27,10 @@ enum Result<V, N> {
     static func failure(next: N) -> Result {
         return .failure(Failure(next: next))
     }
+    
+    func map<NN>(f: (V, N) -> NN) -> Result<V, NN> {
+        
+    }
 }
 
 extension Result.Success where N == String {
