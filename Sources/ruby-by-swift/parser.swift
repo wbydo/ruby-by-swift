@@ -39,11 +39,47 @@ extension Result.Success where N == String {
     }
 }
 
-struct State {
+struct State<V, N> {
+    let mutator: (State) -> Result<V, N>
+    
     struct DoNothingParser<T> {
         func parse(_ target: T) -> Result<T?, T> {
             return Result.success(value: nil, next: target)
         }
+    }
+    
+    func then<P: Parser>(parser: P) -> State<(V, P.Value), N>
+            where N == P.Target, N == P.Next {
+
+        let computedMutator = {(prevState: State) -> Result<(V, P.Value), N> in
+            
+            let prevResult: Result<V, N> = self.mutator(prevState)
+        
+            if case let .failure(f1) = prevResult {
+                return Result.failure(next: f1.next)
+            }
+            
+            if case let .success(s1) = prevResult {
+                let prevValue: V = s1.value
+                let prevNext: N = s1.next
+                let nextResult: Result<P.Value, P.Next> = parser.parse(prevNext)
+                
+                
+                if case let .failure(f2) = nextResult {
+                    return Result.failure(next: f2.next)
+                }
+                
+                if case let .success(s2) = nextResult {
+                    return Result.success(value: (prevValue, s2.value), next: s2.next)
+                }
+                
+                fatalError()
+            }
+            
+            fatalError()
+        }
+        
+        return State<(V, P.Value), N>(mutator: computedMutator)
     }
 }
 
