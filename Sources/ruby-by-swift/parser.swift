@@ -39,6 +39,25 @@ extension Result.Success where N == String {
     }
 }
 
+struct State<T> {
+    let mutator: (State) -> Result<T?, T>
+
+    struct DoNothingParser<T1>: Parser {
+        func parse(_ target: T1) -> Result<T1?, T1> {
+            return Result.success(value: nil, next: target)
+        }
+    }
+    
+    func doNothingReturning(value: T) -> State {
+        let mutator = {(state) in
+            let parser = DoNothingParser<T>()
+            return parser.parse(value)
+        }
+        
+        return State(mutator)
+    }
+}
+
 protocol Parser {
     associatedtype Target
     associatedtype Value
