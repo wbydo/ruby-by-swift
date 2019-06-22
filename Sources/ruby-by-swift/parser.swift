@@ -39,12 +39,26 @@ extension Result.Success where N == String {
     }
 }
 
+struct State {
+    struct DoNothingParser<T> {
+        func parse(_ target: T) -> Result<T?, T> {
+            return Result.success(value: nil, next: target)
+        }
+    }
+}
+
 protocol Parser {
     associatedtype Target
     associatedtype Value
     associatedtype Next
     
     func parse(_ target: Target) -> Result<Value, Next>
+}
+
+struct DoNothingParser<T>: Parser {
+    func parse(_ target: T) -> Result<T?, T> {
+        return Result.success(value: nil, next: target)
+    }
 }
 
 struct OrParser<LP: Parser, RP: Parser>: Parser

@@ -32,6 +32,25 @@ class parserTests: XCTestCase {
         }
     }
     
+    class stateTests: XCTestCase {
+
+    }
+    
+    class doNothingParserTests: XCTestCase {
+        func testDoNothingParser() {
+            let parser = DoNothingParser<String>()
+            let result = parser.parse("abc")
+            
+            switch result {
+            case let .success(s):
+                XCTAssertNil(s.value)
+                XCTAssertEqual(s.next, "abc")
+            default:
+                assertionFailure()
+            }
+        }
+    }
+    
     class anyCharTests: XCTestCase {
         func testSuccessNormal() {
             // This is an example of a functional test case.
