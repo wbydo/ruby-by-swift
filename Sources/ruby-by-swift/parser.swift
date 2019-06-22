@@ -24,6 +24,15 @@ enum Result<V, N> {
         return .success(Success(value: value, next: next));
     }
     
+    func success() -> Result.Success? {
+        switch self {
+        case let .success(s):
+            return s
+        default:
+            return nil
+        }
+    }
+    
     static func failure(next: N) -> Result {
         return .failure(Failure(next: next))
     }
@@ -39,48 +48,34 @@ extension Result.Success where N == String {
     }
 }
 
-struct State<V, N> {
-    let mutator: (State) -> Result<V, N>
-    
-    struct DoNothingParser<T> {
-        func parse(_ target: T) -> Result<T?, T> {
-            return Result.success(value: nil, next: target)
-        }
-    }
-    
-    func then<P: Parser>(parser: P) -> State<(V, P.Value), N>
-            where N == P.Target, N == P.Next {
+struct State<T, P: Parser> {
+//    let mutator: (Result<T, P.Target>) -> Result<P.Value, P.Next>
 
-        let computedMutator = {(prevState: State) -> Result<(V, P.Value), N> in
-            
-            let prevResult: Result<V, N> = self.mutator(prevState)
-        
-            if case let .failure(f1) = prevResult {
-                return Result.failure(next: f1.next)
-            }
-            
-            if case let .success(s1) = prevResult {
-                let prevValue: V = s1.value
-                let prevNext: N = s1.next
-                let nextResult: Result<P.Value, P.Next> = parser.parse(prevNext)
-                
-                
-                if case let .failure(f2) = nextResult {
-                    return Result.failure(next: f2.next)
-                }
-                
-                if case let .success(s2) = nextResult {
-                    return Result.success(value: (prevValue, s2.value), next: s2.next)
-                }
-                
-                fatalError()
-            }
-            
-            fatalError()
-        }
-        
-        return State<(V, P.Value), N>(mutator: computedMutator)
-    }
+//    static func doNothingReturn<T1>(value: T1) -> State<Never, DoNothingParser<T1>> {
+//        let mutator = {(_: Result<Never, T1>) -> Result<T1?, T1> in
+//            let parser = DoNothingParser<T1>()
+//            return parser.parse(value)
+//        }
+//        return State<Never, DoNothingParser<T1>>(mutator: mutator)
+//    }
+    
+//    func then<P1: Parser>(parser: P1) {
+//        let mutator = {(prevResult: Result<T, P1.Target>) -> Result<(T, P1.Value), P1.Next> in
+//            if case let .failure(f1) = prevResult {
+//                return Result.failure(next: f1.next)
+//            }
+//
+//            let prevSuccess = prevResult.success()
+//            let result = parser.parse(prevSuccess.next)
+//
+//            guard case let .success(s2) = result else {
+//                return prevResult
+//            }
+//
+//            return Result.success(value: (s1, s2), next: s2.next)
+//        }
+//        return State(mutator: mutator)
+//    }
 }
 
 protocol Parser {
