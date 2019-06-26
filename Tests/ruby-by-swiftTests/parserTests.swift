@@ -19,7 +19,7 @@ class parserTests: XCTestCase {
     
     class resultTests: XCTestCase {
         func testCreateSuccessType() {
-            guard let success = Result<String, String>.Success(value: "a", next: "b") else {
+            guard let success = ParseResult<String, String>.Success(value: "a", next: "b") else {
                 fatalError()
             }
             XCTAssertEqual(success.value, "a")
@@ -27,7 +27,7 @@ class parserTests: XCTestCase {
         }
         
         func testSuccessTypeOfStringDontHaveEmpty() {
-            let success = Result<String, String>.Success(value: "a", next: "")
+            let success = ParseResult<String, String>.Success(value: "a", next: "")
             XCTAssertNil(success);
         }
     }
@@ -37,7 +37,7 @@ class parserTests: XCTestCase {
             // This is an example of a functional test case.
             // Use XCTAssert and related functions to verify your tests produce the correct results.
             let parser = AnyChar();
-            let result: Result = parser.parse("abc");
+            let result: ParseResult = parser.parse("abc");
             
             guard case let .success(s) = result else {
                 fatalError();
@@ -51,7 +51,7 @@ class parserTests: XCTestCase {
             // This is an example of a functional test case.
             // Use XCTAssert and related functions to verify your tests produce the correct results.
             let parser = AnyChar();
-            let result: Result = parser.parse("q");
+            let result: ParseResult = parser.parse("q");
             
             guard case let .success(s) = result else {
                 fatalError();

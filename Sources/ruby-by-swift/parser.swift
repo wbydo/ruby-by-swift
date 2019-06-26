@@ -7,7 +7,7 @@
 
 import Foundation
 
-enum Result<V, N> {
+enum ParseResult<V, N> {
     case success(Success);
     case failure(Failure);
     
@@ -20,16 +20,16 @@ enum Result<V, N> {
         let next: N;
     }
     
-    static func success(value: V, next: N) -> Result {
+    static func success(value: V, next: N) -> ParseResult {
         return .success(Success(value: value, next: next));
     }
     
-    static func failure(next: N) -> Result {
+    static func failure(next: N) -> ParseResult {
         return .failure(Failure(next: next))
     }
 }
 
-extension Result.Success where N == String {
+extension ParseResult.Success where N == String {
     init?(value: V, next: N) {
         guard !next.isEmpty else {
             return nil
@@ -39,12 +39,20 @@ extension Result.Success where N == String {
     }
 }
 
+struct State {
+    struct MutationResult {
+        let state: State
+        
+    }
+}
+
+
 protocol Parser {
     associatedtype Target
     associatedtype Value
     associatedtype Next
     
-    func parse(_ target: Target) -> Result<Value, Next>
+    func parse(_ target: Target) -> ParseResult<Value, Next>
 }
 
 struct OrParser<LP: Parser, RP: Parser>: Parser
@@ -53,7 +61,7 @@ struct OrParser<LP: Parser, RP: Parser>: Parser
     let lhs: LP
     let rhs: RP
     
-    func parse(_ target: LP.Target) -> Result<LP.Value, LP.Next> {
+    func parse(_ target: LP.Target) -> ParseResult<LP.Value, LP.Next> {
         let lresult = lhs.parse(target)
         guard case .failure = lresult else {
             return lresult;
@@ -72,9 +80,9 @@ extension Parser {
 }
 
 struct AnyChar: Parser {
-    func parse(_ target: String) -> Result<Character, String?> {
+    func parse(_ target: String) -> ParseResult<Character, String?> {
         guard !target.isEmpty else {
-            return Result.failure(next: nil)
+            return ParseResult.failure(next: nil)
         }
         
         let startIndex = target.startIndex;
@@ -83,9 +91,9 @@ struct AnyChar: Parser {
         let next = target[target.index(startIndex, offsetBy: 1)..<target.endIndex]
         
         if next.isEmpty {
-            return Result.success(value: value, next: nil);
+            return ParseResult.success(value: value, next: nil);
         } else {
-            return Result.success(value: value, next: String(next));
+            return ParseResult.success(value: value, next: String(next));
         }
     }
 }
@@ -93,7 +101,7 @@ struct AnyChar: Parser {
 struct SpecificChar: Parser {
     let value: Character
 
-    func parse(_ target: String) -> Result<Character, String?> {
+    func parse(_ target: String) -> ParseResult<Character, String?> {
         let anyChar = AnyChar();
         let result = anyChar.parse(target);
         
@@ -104,7 +112,7 @@ struct SpecificChar: Parser {
         if s.value == self.value {
             return result
         } else {
-            return Result.failure(next: target);
+            return ParseResult.failure(next: target);
         }
     }
 }
