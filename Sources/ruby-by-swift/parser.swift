@@ -10,6 +10,11 @@ import Foundation
 enum Result<V, N> {
     case success(Success);
     case failure(Failure);
+    case initial(Initial);
+    
+    struct Initial {
+        let next: N
+    }
     
     struct Success {
         let value: V;
@@ -27,6 +32,10 @@ enum Result<V, N> {
     static func failure(next: N) -> Result {
         return .failure(Failure(next: next))
     }
+    
+    static func initial(next: N) -> Result {
+        return .initial(Initial(next: next))
+    }
 }
 
 extension Result.Success where N == String {
@@ -37,6 +46,12 @@ extension Result.Success where N == String {
         self.value = value
         self.next = next
     }
+}
+
+struct State<S, V, N> {
+    let mutator: (S) -> Result<V, N>
+    
+    let then(nextAction: (Result<V, N>))
 }
 
 protocol Parser {
