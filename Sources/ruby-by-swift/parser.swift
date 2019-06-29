@@ -10,6 +10,7 @@ import Foundation
 enum ParseResult<V, N> {
     case success(Success);
     case failure(Failure);
+    case initial(Initial)
     
     struct Success {
         let value: V;
@@ -20,12 +21,20 @@ enum ParseResult<V, N> {
         let next: N;
     }
     
+    struct Initial {
+        let next: N
+    }
+    
     static func success(value: V, next: N) -> ParseResult {
         return .success(Success(value: value, next: next));
     }
     
     static func failure(next: N) -> ParseResult {
         return .failure(Failure(next: next))
+    }
+    
+    static func initial(next: N) -> ParseResult {
+        return .initial(Initial(next: next))
     }
 }
 
@@ -39,13 +48,39 @@ extension ParseResult.Success where N == String {
     }
 }
 
-struct State {
-    struct MutationResult {
-        let state: State
-        
-    }
+struct MutationResult<S, V, N> {
+    let state: S
+    let result: ParseResult<V, N>
 }
 
+struct State<S, V, N> {
+    let mutator: (S) -> MutationResult<S, V, N>
+    
+    func then<V1>(_ nextAction: @escaping (ParseResult<V, N>) -> State<S, V1, N>) -> State<S, V1, N> {
+        let mutator = {(prevState: S) -> MutationResult<S, V1, N> in
+            let mutationResult = self.mutator(prevState)
+            let parseResult = mutationResult.result
+            let nextState = nextAction(parseResult)
+            return nextState.mutator(mutationResult.state)
+        }
+        return State<S, V1, N>(mutator: mutator)
+    }
+    
+    static func create<T>(_ value: N) -> State where S == [T], V == Never {
+        let mutator = {(_: [T]) -> MutationResult<[T], Never, N> in
+            let result = ParseResult<Never, N>.initial(next: value)
+            return MutationResult(state: [], result: result)
+        }
+        return State<S, Never, N>(mutator: mutator)
+    }
+
+    static func create<V1, N1>(_ parseReuslt: ParseResult<V1, N1>) -> State<S, V1, N1> {
+        let mutator = {(initialState: S) -> MutationResult<S, V1, N1> in
+            return MutationResult(state: initialState, result: parseReuslt)
+        }
+        return State<S, V1, N1>(mutator: mutator)
+    }
+}
 
 protocol Parser {
     associatedtype Target

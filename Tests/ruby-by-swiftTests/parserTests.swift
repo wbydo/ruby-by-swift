@@ -32,6 +32,21 @@ class parserTests: XCTestCase {
         }
     }
     
+    class stateTests: XCTestCase {
+        func testCreateStateFromValue() {
+            let state = State<[Character], Never, String>.create("abc")
+            let mutationResult = state.mutator([])
+            XCTAssertEqual(mutationResult.state, [])
+            
+            switch mutationResult.result {
+            case let .initial(i):
+                XCTAssertEqual(i.next, "abc")
+            default:
+                assertionFailure()
+            }
+        }
+    }
+    
     class anyCharTests: XCTestCase {
         func testSuccessNormal() {
             // This is an example of a functional test case.
