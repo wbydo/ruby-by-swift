@@ -7,29 +7,38 @@
 
 import Foundation
 
-enum Result<V, SN, FN> {
-    case success(Success<V, SN>);
-    case failure(Failure<FN>);
+enum ParseResult<V, N> {
+    case success(Success);
+    case failure(Failure);
+    case initial(Initial)
     
-    struct Success<V, N> {
+    struct Success {
         let value: V;
         let next: N;
     }
     
-    struct Failure<N> {
+    struct Failure {
         let next: N;
     }
     
-    static func success(value: V, next: SN) -> Result {
+    struct Initial {
+        let next: N
+    }
+    
+    static func success(value: V, next: N) -> ParseResult {
         return .success(Success(value: value, next: next));
     }
     
-    static func failure(next: FN) -> Result {
+    static func failure(next: N) -> ParseResult {
         return .failure(Failure(next: next))
+    }
+    
+    static func initial(next: N) -> ParseResult {
+        return .initial(Initial(next: next))
     }
 }
 
-extension Result.Success where N == String {
+extension ParseResult.Success where N == String {
     init?(value: V, next: N) {
         guard !next.isEmpty else {
             return nil
@@ -39,23 +48,55 @@ extension Result.Success where N == String {
     }
 }
 
+struct MutationResult<S, V, N> {
+    let state: S
+    let result: ParseResult<V, N>
+}
+
+struct State<S, V, N> {
+    let mutator: (S) -> MutationResult<S, V, N>
+    
+    func then<V1>(_ nextAction: @escaping (ParseResult<V, N>) -> State<S, V1, N>) -> State<S, V1, N> {
+        let mutator = {(prevState: S) -> MutationResult<S, V1, N> in
+            let mutationResult = self.mutator(prevState)
+            let parseResult = mutationResult.result
+            let nextState = nextAction(parseResult)
+            return nextState.mutator(mutationResult.state)
+        }
+        return State<S, V1, N>(mutator: mutator)
+    }
+    
+    static func create<T>(_ value: N) -> State where S == [T], V == Never {
+        let mutator = {(_: [T]) -> MutationResult<[T], Never, N> in
+            let result = ParseResult<Never, N>.initial(next: value)
+            return MutationResult(state: [], result: result)
+        }
+        return State<S, Never, N>(mutator: mutator)
+    }
+
+    static func create<V1, N1>(_ parseReuslt: ParseResult<V1, N1>) -> State<S, V1, N1> {
+        let mutator = {(initialState: S) -> MutationResult<S, V1, N1> in
+            return MutationResult(state: initialState, result: parseReuslt)
+        }
+        return State<S, V1, N1>(mutator: mutator)
+    }
+}
+
 protocol Parser {
     associatedtype Target
     associatedtype Value
-    associatedtype SuccessNext
-    associatedtype FailureNext
+    associatedtype Next
     
-    func parse(_ target: Target) -> Result<Value, SuccessNext, FailureNext>
+    func parse(_ target: Target) -> ParseResult<Value, Next>
 }
 
 struct OrParser<LP: Parser, RP: Parser>: Parser
-        where LP.Target == RP.Target, LP.Value == RP.Value,
-            LP.SuccessNext == RP.SuccessNext, LP.FailureNext == RP.FailureNext {
+        where LP.Target == RP.Target, LP.Value == RP.Value, LP.Next == RP.Next {
 
     let lhs: LP
     let rhs: RP
     
-    func parse(_ target: LP.Target) -> Result<LP.Value, LP.SuccessNext, LP.FailureNext> {
+    func parse(_ target: LP.Target) -> ParseResult<LP.Value, LP.Next> {
         let lresult = lhs.parse(target)
         guard case .failure = lresult else {
             return lresult;
@@ -74,9 +115,9 @@ extension Parser {
 }
 
 struct AnyChar: Parser {
-    func parse(_ target: String) -> Result<Character, String?, String?> {
+    func parse(_ target: String) -> ParseResult<Character, String?> {
         guard !target.isEmpty else {
-            return Result.failure(next: nil)
+            return ParseResult.failure(next: nil)
         }
         
         let startIndex = target.startIndex;
@@ -85,9 +126,9 @@ struct AnyChar: Parser {
         let next = target[target.index(startIndex, offsetBy: 1)..<target.endIndex]
         
         if next.isEmpty {
-            return Result.success(value: value, next: nil);
+            return ParseResult.success(value: value, next: nil);
         } else {
-            return Result.success(value: value, next: String(next));
+            return ParseResult.success(value: value, next: String(next));
         }
     }
 }
@@ -95,7 +136,7 @@ struct AnyChar: Parser {
 struct SpecificChar: Parser {
     let value: Character
 
-    func parse(_ target: String) -> Result<Character, String?, String?> {
+    func parse(_ target: String) -> ParseResult<Character, String?> {
         let anyChar = AnyChar();
         let result = anyChar.parse(target);
         
@@ -106,7 +147,7 @@ struct SpecificChar: Parser {
         if s.value == self.value {
             return result
         } else {
-            return Result.failure(next: target);
+            return ParseResult.failure(next: target);
         }
     }
 }

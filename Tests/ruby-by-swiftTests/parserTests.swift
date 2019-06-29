@@ -19,7 +19,7 @@ class parserTests: XCTestCase {
     
     class resultTests: XCTestCase {
         func testCreateSuccessType() {
-            guard let success = Result<String, String, Any>.Success<String, String>(value: "a", next: "b") else {
+            guard let success = ParseResult<String, String>.Success(value: "a", next: "b") else {
                 fatalError()
             }
             XCTAssertEqual(success.value, "a")
@@ -27,8 +27,23 @@ class parserTests: XCTestCase {
         }
         
         func testSuccessTypeOfStringDontHaveEmpty() {
-            let success = Result<String, String, Any>.Success<String, String>(value: "a", next: "")
+            let success = ParseResult<String, String>.Success(value: "a", next: "")
             XCTAssertNil(success);
+        }
+    }
+    
+    class stateTests: XCTestCase {
+        func testCreateStateFromValue() {
+            let state = State<[Character], Never, String>.create("abc")
+            let mutationResult = state.mutator([])
+            XCTAssertEqual(mutationResult.state, [])
+            
+            switch mutationResult.result {
+            case let .initial(i):
+                XCTAssertEqual(i.next, "abc")
+            default:
+                assertionFailure()
+            }
         }
     }
     
@@ -37,7 +52,7 @@ class parserTests: XCTestCase {
             // This is an example of a functional test case.
             // Use XCTAssert and related functions to verify your tests produce the correct results.
             let parser = AnyChar();
-            let result: Result = parser.parse("abc");
+            let result: ParseResult = parser.parse("abc");
             
             guard case let .success(s) = result else {
                 fatalError();
@@ -51,7 +66,7 @@ class parserTests: XCTestCase {
             // This is an example of a functional test case.
             // Use XCTAssert and related functions to verify your tests produce the correct results.
             let parser = AnyChar();
-            let result: Result = parser.parse("q");
+            let result: ParseResult = parser.parse("q");
             
             guard case let .success(s) = result else {
                 fatalError();
