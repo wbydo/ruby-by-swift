@@ -45,6 +45,30 @@ class parserTests: XCTestCase {
                 assertionFailure()
             }
         }
+        
+        func testParse1() {
+            let parser = SpecificChar(value: "a")
+            let state = State<[Character], Character, String>.create("abc")
+            let mutationResult = state.then(parser).mutator([])
+            switch mutationResult.result {
+            case let .success(s):
+                XCTAssertEqual(s.next, "bc")
+            default:
+                assertionFailure()
+            }
+        }
+        
+        func testParse2() {
+            let parser = SpecificChar(value: "a")
+            let state = State<[Character], Character, String>.create("aac")
+            let mutationResult = state.then(parser).then(parser).mutator([])
+            switch mutationResult.result {
+            case let .success(s):
+                XCTAssertEqual(s.next, "c")
+            default:
+                assertionFailure()
+            }
+        }
     }
     
     class anyCharTests: XCTestCase {
